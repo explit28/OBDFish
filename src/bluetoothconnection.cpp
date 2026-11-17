@@ -35,7 +35,8 @@ void BluetoothConnection::vStartDeviceDiscovery()
         return;
     }
 
-    for (auto it = result.value().cbegin(); it != result.value().cend(); ++it) {
+    const BluezObjects objects = result.value();
+    for (auto it = objects.cbegin(); it != objects.cend(); ++it) {
         if (it.value().contains(QStringLiteral("org.bluez.Adapter1"))) {
             m_adapterPath = it.key().path();
             break;
@@ -72,7 +73,8 @@ void BluetoothConnection::refreshDevices()
         return;
     }
 
-    for (auto it = result.value().cbegin(); it != result.value().cend(); ++it) {
+    const BluezObjects objects = result.value();
+    for (auto it = objects.cbegin(); it != objects.cend(); ++it) {
         auto device = it.value().constFind(QStringLiteral("org.bluez.Device1"));
         if (device == it.value().cend()) continue;
         const QString address = device->value(QStringLiteral("Address")).toString();
