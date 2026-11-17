@@ -6,4 +6,6 @@ Exec=harbour-obdfish
 Name=OBDFish
 Name[de]=OBDFish
 [X-Sailjail]
-Sandboxing=Disabled
+Permissions=Bluetooth;Documents
+OrganizationName=org.explit28
+ApplicationName=OBDFish
