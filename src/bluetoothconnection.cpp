@@ -1,69 +1,97 @@
-/*
- * Copyright (C) 2016 Jens Drescher, Germany
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "bluetoothconnection.h"
-#include <QtGui>
+
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusMetaType>
+#include <QDBusObjectPath>
+#include <QDBusReply>
+#include <QDebug>
+
+using BluezInterfaces = QMap<QString, QVariantMap>;
+using BluezObjects = QMap<QDBusObjectPath, BluezInterfaces>;
+Q_DECLARE_METATYPE(BluezInterfaces)
+Q_DECLARE_METATYPE(BluezObjects)
 
 BluetoothConnection::BluetoothConnection(QObject *parent) : QObject(parent)
 {
-    this->discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
-
-    connect(this->discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),this, SLOT(vDeviceDiscovered(QBluetoothDeviceInfo)));
-    connect(this->discoveryAgent, SIGNAL(finished()), this, SLOT(vDiscoveryFinished()));
-    connect(this->discoveryAgent, SIGNAL(canceled()), this, SLOT(vDiscoveryFinished()));
-}
-
-BluetoothConnection::~BluetoothConnection()
-{
-    delete this->discoveryAgent;
+    qDBusRegisterMetaType<BluezInterfaces>();
+    qDBusRegisterMetaType<BluezObjects>();
+    m_refreshTimer.setInterval(1000);
+    connect(&m_refreshTimer, &QTimer::timeout, this, &BluetoothConnection::refreshDevices);
 }
 
 void BluetoothConnection::vStartDeviceDiscovery()
-{      
-    //qDebug() << "Scanning...";
-    if (this->discoveryAgent->isActive())
-        this->discoveryAgent->stop();
+{
+    vStopDeviceDiscovery();
+    m_seenAddresses.clear();
+    m_adapterPath.clear();
 
-    this->discoveryAgent->start();
+    QDBusInterface manager("org.bluez", "/", "org.freedesktop.DBus.ObjectManager",
+                          QDBusConnection::systemBus());
+    QDBusReply<BluezObjects> result = manager.call("GetManagedObjects");
+    if (!result.isValid()) {
+        qWarning() << "Cannot query Bluetooth devices:" << result.error().message();
+        emit scanFinished();
+        return;
+    }
+
+    const BluezObjects objects = result.value();
+    for (auto it = objects.cbegin(); it != objects.cend(); ++it) {
+        if (it.value().contains(QStringLiteral("org.bluez.Adapter1"))) {
+            m_adapterPath = it.key().path();
+            break;
+        }
+    }
+    if (m_adapterPath.isEmpty()) {
+        qWarning() << "No BlueZ adapter found";
+        emit scanFinished();
+        return;
+    }
+
+    m_scanning = true;
+    refreshDevices();
+    QDBusInterface adapter("org.bluez", m_adapterPath, "org.bluez.Adapter1",
+                           QDBusConnection::systemBus());
+    QDBusMessage response = adapter.call("StartDiscovery");
+    if (response.type() == QDBusMessage::ErrorMessage)
+        qWarning() << "Bluetooth StartDiscovery:" << response.errorMessage();
+
+    // Include devices found during discovery, without requiring an
+    // unsupported QtBluetooth library on Sailfish OS 5.x.
+    m_refreshTimer.start();
+    QTimer::singleShot(12000, this, [this]() { vStopDeviceDiscovery(); });
+}
+
+void BluetoothConnection::refreshDevices()
+{
+    if (!m_scanning) return;
+    QDBusInterface manager("org.bluez", "/", "org.freedesktop.DBus.ObjectManager",
+                          QDBusConnection::systemBus());
+    QDBusReply<BluezObjects> result = manager.call("GetManagedObjects");
+    if (!result.isValid()) {
+        qWarning() << "BlueZ device refresh failed:" << result.error().message();
+        return;
+    }
+
+    const BluezObjects objects = result.value();
+    for (auto it = objects.cbegin(); it != objects.cend(); ++it) {
+        auto device = it.value().constFind(QStringLiteral("org.bluez.Device1"));
+        if (device == it.value().cend()) continue;
+        const QString address = device->value(QStringLiteral("Address")).toString();
+        if (address.isEmpty() || m_seenAddresses.contains(address)) continue;
+        m_seenAddresses.insert(address);
+        const QString name = device->value(QStringLiteral("Alias")).toString();
+        emit deviceFound(name.isEmpty() ? address : name, address);
+    }
 }
 
 void BluetoothConnection::vStopDeviceDiscovery()
 {
-    this->discoveryAgent->stop();
-}
-
-//Read information about the found devices
-void BluetoothConnection::vDeviceDiscovered(const QBluetoothDeviceInfo &device)
-{
-    //qDebug() << "Found new device:" << device.name() << '(' << device.address().toString() << ')';
-
-    emit deviceFound(device.name(), device.address().toString());
-
-    /*
-    qDebug() << "Discovered service on" << serviceInfo.device().name() << serviceInfo.device().address().toString();
-    qDebug() << "\tService name:" << serviceInfo.serviceName();
-    qDebug() << "\tDescription:" << serviceInfo.attribute(QBluetoothServiceInfo::ServiceDescription).toString();
-    qDebug() << "\tProvider:" << serviceInfo.attribute(QBluetoothServiceInfo::ServiceProvider).toString();
-    qDebug() << "\tL2CAP protocol service multiplexer:" << serviceInfo.protocolServiceMultiplexer();
-    qDebug() << "\tRFCOMM server channel:" << serviceInfo.serverChannel();
-    */
-}
-
-void BluetoothConnection::vDiscoveryFinished()
-{
-    emit this->scanFinished();
+    if (!m_scanning) return;
+    m_scanning = false;
+    m_refreshTimer.stop();
+    QDBusInterface adapter("org.bluez", m_adapterPath, "org.bluez.Adapter1",
+                           QDBusConnection::systemBus());
+    adapter.call("StopDiscovery");
+    emit scanFinished();
 }

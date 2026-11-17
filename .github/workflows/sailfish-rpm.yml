@@ -1,0 +1,46 @@
+name: Sailfish OS 5.2 RPM test builds
+
+on:
+  push:
+    branches: [compat/sailfishos-5x]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rpm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, armv7hl]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Sailfish OS 5.2 RPM
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          chmod 0777 output
+          docker run --rm --privileged \
+            --mount "type=bind,source=${GITHUB_WORKSPACE},target=/share" \
+            coderus/sailfishos-platform-sdk:5.2.0.15 \
+            /bin/bash -euc '
+              mkdir -p build
+              cp -a /share/. build/
+              cd build
+              mb2 -t SailfishOS-5.2.0.15-${{ matrix.arch }} -s rpm/harbour-obdfish.spec build
+              find RPMS -type f -name "*.${{ matrix.arch }}.rpm" -print -exec cp -v {} /share/output/ \;
+              test -n "$(find /share/output -name "*.${{ matrix.arch }}.rpm" -print -quit)"
+            '
+
+      - name: Upload installable RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: obdfish-sailfish-5.2-${{ matrix.arch }}
+          path: output/*.${{ matrix.arch }}.rpm
+          if-no-files-found: error
+          retention-days: 30

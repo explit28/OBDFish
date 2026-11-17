@@ -14,8 +14,7 @@ TARGET = harbour-obdfish
 
 CONFIG += sailfishapp
 
-QMAKE_CXXFLAGS += -std=c++0x
-QMAKE_LFLAGS += -std=c++0x
+CONFIG += c++11
 
 DEFINES += APP_VERSION=\"\\\"$${VERSION}\\\"\"
 
@@ -53,7 +52,7 @@ HEADERS += \
     src/projectsettings.h \
     src/plotwidget.h
 
-QT += bluetooth
+QT += dbus sensors
 
 DISTFILES += \
     rpm/harbour-obdfish.spec \
