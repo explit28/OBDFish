@@ -29,7 +29,7 @@ PkgConfigBR:
   - Qt5Core
   - Qt5Qml
   - Qt5Quick
-  - Qt5Bluetooth
+  - Qt5DBus
   - Qt5Sensors
 
 # Build dependencies without a pkgconfig setup can be listed here
