@@ -20,8 +20,8 @@ private slots:
     void disconnected();
     void error(QBluetoothSocket::SocketError errorCode);
 private:
-    QBluetoothSocket *_socket;
-    int _port;
+    QBluetoothSocket *_socket = nullptr;
+    int _port = 0;
     qint64 write(QByteArray data);
 signals:
     void sigReadDataReady(QString sData);
