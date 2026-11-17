@@ -1,0 +1,62 @@
+name: Sailfish OS RPM test builds
+
+on:
+  push:
+    branches:
+      - compat/sailfishos-5x
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rpm:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, armv7hl]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Sailfish SDK 3.13.5
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl docker.io libxcb-xinerama0 libxkbcommon-x11-0
+          sudo systemctl start docker
+          sudo usermod -aG docker "$USER"
+          curl --fail --location --retry 3 -o /tmp/sailfish-sdk.run \
+            https://releases.sailfishos.org/sdk/installers/3.13.5/SailfishSDK-3.13.5-linux64-online.run
+          printf '20fbb809a4ad27b71444a2081d56ca84  /tmp/sailfish-sdk.run\n' | md5sum --check
+          chmod +x /tmp/sailfish-sdk.run
+          QT_QPA_PLATFORM=minimal /tmp/sailfish-sdk.run \
+            non-interactive=1 accept-licenses=1 build-engine-type=docker \
+            --verbose
+          test -x "$HOME/SailfishOS/bin/sfdk"
+
+      - name: Build RPM
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/SailfishOS/bin:$PATH"
+          sfdk tools list
+          TARGET="$(sfdk tools list | grep -oE 'SailfishOS-[0-9][^[:space:]]*-${{ matrix.arch }}' | sort -V | tail -1)"
+          if [ -z "$TARGET" ]; then
+            echo "::error::Sailfish SDK has no installed ${{ matrix.arch }} target"
+            exit 1
+          fi
+          echo "Using SDK target: $TARGET"
+          sfdk config --push target "$TARGET"
+          sfdk build
+          test -n "$(find RPMS -name '*.rpm' -print -quit)"
+
+      - name: Upload test RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: obdfish-${{ matrix.arch }}-rpm
+          path: RPMS/**/*.rpm
+          if-no-files-found: error
+          retention-days: 30
