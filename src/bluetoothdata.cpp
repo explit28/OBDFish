@@ -8,8 +8,7 @@ BluetoothData::BluetoothData (QObject *parent):QObject(parent)
 
 BluetoothData::~BluetoothData ()
 {
-    if(this->_socket)
-        delete this->_socket;
+    delete this->_socket;
 }
 
 void BluetoothData::connect(QString address, int port)
@@ -17,10 +16,10 @@ void BluetoothData::connect(QString address, int port)
     this->_port = port;
     qDebug("Trying to connect to: %s_%d", address.toUtf8().constData(), _port);
 
-    if(this->_socket)
-        delete this->_socket;
+    delete this->_socket;
+    this->_socket = nullptr;
 
-    this->_socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
+    this->_socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
 
     QObject::connect(this->_socket, SIGNAL(connected()), this, SLOT(connected()));
     QObject::connect(this->_socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
@@ -63,7 +62,7 @@ void BluetoothData::disconnect()
         this->_socket->close();
 
     delete this->_socket;
-    this->_socket = 0;
+    this->_socket = nullptr;
 
     qDebug("Disconnected.");
 }
@@ -101,6 +100,11 @@ qint64 BluetoothData::write(QByteArray data)
 {
     qDebug() << "Writing:" << data.toHex();
 
+
+    if (!this->_socket || this->_socket->state() != QBluetoothSocket::ConnectedState) {
+        emit sigError(QStringLiteral("Bluetooth adapter is not connected"));
+        return -1;
+    }
 
     qint64 ret = this->_socket->write(data);
 
