@@ -1,42 +1,30 @@
-/*
- * Copyright (C) 2016 Jens Drescher, Germany
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#ifndef BLUETOOTHCONNECTION
-#define BLUETOOTHCONNECTION
+#ifndef BLUETOOTHCONNECTION_H
+#define BLUETOOTHCONNECTION_H
 
 #include <QObject>
-#include <QtBluetooth/QBluetoothDeviceDiscoveryAgent>
+#include <QSet>
+#include <QTimer>
 
 class BluetoothConnection : public QObject
 {
     Q_OBJECT
 public:
-    explicit BluetoothConnection(QObject *parent = 0);
-    ~BluetoothConnection();
+    explicit BluetoothConnection(QObject *parent = nullptr);
     Q_INVOKABLE void vStartDeviceDiscovery();
-    Q_INVOKABLE void vStopDeviceDiscovery();       
-private:
-    QBluetoothDeviceDiscoveryAgent *discoveryAgent;
-private slots:
-    void vDeviceDiscovered(const QBluetoothDeviceInfo &device);
-    void vDiscoveryFinished();
+    Q_INVOKABLE void vStopDeviceDiscovery();
+
 signals:
     void deviceFound(QString sName, QString sAddress);
     void scanFinished();
+
+private slots:
+    void refreshDevices();
+
+private:
+    QTimer m_refreshTimer;
+    QSet<QString> m_seenAddresses;
+    QString m_adapterPath;
+    bool m_scanning = false;
 };
 
-#endif // BLUETOOTHCONNECTION
+#endif
