@@ -52,7 +52,7 @@ HEADERS += \
     src/projectsettings.h \
     src/plotwidget.h
 
-QT += bluetooth sensors
+QT += dbus sensors
 
 DISTFILES += \
     rpm/harbour-obdfish.spec \
