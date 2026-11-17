@@ -25,7 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y curl libxcb-xinerama0 libxkbcommon-x11-0
+          sudo apt-get install -y curl libxcb-xinerama0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-randr0 libxcb-shape0 libxcb-cursor0 libgl1
           docker version
           curl --fail --location --retry 3 -o /tmp/sailfish-sdk.run \
             https://releases.sailfishos.org/sdk/installers/3.13.5/SailfishSDK-3.13.5-linux64-online.run
