@@ -25,9 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y curl docker.io libxcb-xinerama0 libxkbcommon-x11-0
-          sudo systemctl start docker
-          sudo usermod -aG docker "$USER"
+          sudo apt-get install -y curl libxcb-xinerama0 libxkbcommon-x11-0
+          docker version
           curl --fail --location --retry 3 -o /tmp/sailfish-sdk.run \
             https://releases.sailfishos.org/sdk/installers/3.13.5/SailfishSDK-3.13.5-linux64-online.run
           printf '20fbb809a4ad27b71444a2081d56ca84  /tmp/sailfish-sdk.run\n' | md5sum --check
