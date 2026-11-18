@@ -1,0 +1,55 @@
+name: Publish OBDFish 0.95.3-1 upgrade build
+
+on:
+  push:
+    branches:
+      - fix/obdfish-0953-connection
+    paths:
+      - .github/workflows/publish-09531.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Publish versioned RPMs as latest community test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_id=44412175442
+          commit=ba25bf28122166770cb37cba9660a63951510fb8
+          tag=0.95.3-1
+          gh run watch "$run_id" --exit-status
+          test "$(gh run view "$run_id" --json conclusion --jq '.conclusion')" = success
+          test "$(gh run view "$run_id" --json headSha --jq '.headSha')" = "$commit"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; refusing to overwrite."
+            exit 1
+          fi
+          gh run download "$run_id" --dir downloaded
+          mapfile -d '' -t rpms < <(find downloaded -type f -name 'harbour-obdfish-0.95.3-1.*.rpm' -print0)
+          test "${#rpms[@]}" -eq 3
+          for arch in aarch64 armv7hl i486; do
+            printf '%s\n' "${rpms[@]}" | grep -q "\\.$arch\\.rpm$"
+          done
+          gh release create "$tag" "${rpms[@]}" \
+            --target "$commit" \
+            --title "OBDFish 0.95.3-1 — TEST VERSION (Sailfish OS 5.2)" \
+            --latest \
+            --notes "Community test build for Sailfish OS 5.1 and 5.2 with classic Bluetooth ELM327 adapters.
+
+          **RPM version fix:** Version 0.95.3, Release 1 replaces 0.95-3 packaging. It compares newer than 0.95.2-1, allowing package managers to recognize this build as an update.
+
+          Includes the 0.95-3 Bluetooth disconnect/connection-state fixes and About-page credits for deepbluev7, poetaster and ExPLIT.
+
+          Built against Sailfish OS 5.2.0.15 SDK: aarch64, armv7hl and i486.
+
+          **TEST VERSION:** Runtime functionality has not been verified with a vehicle. Sailfish OS 5.1 runtime compatibility and resolution of the reported native crash remain unverified.
+
+          Please report results following README.md and TESTING.md. Do not test while driving or erase trouble codes."
