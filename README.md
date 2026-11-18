@@ -38,7 +38,7 @@ The fixes are based in part on reports by Sailfish community members in the [OBD
 
 ### Earlier community test builds
 
-[OBDFish 0.95-3](https://github.com/explit28/OBDFish/releases/tag/0.95-3) contains the same connection fixes and About-page credits but its RPM version is `0.95-3`, which sorts below `0.95.2-1`. **Use 0.95.3-1 for upgrades.**
+The previous `0.95-3` packages were withdrawn because their RPM version sorts below `0.95.2-1`. **Use 0.95.3-1 for upgrades.**
 
 [OBDFish 0.95-2](https://github.com/explit28/OBDFish/releases/tag/v0.95-test1) remains available for comparing connection behavior. The original Poetaster `0.95` release is kept separately and has RPM filenames containing `0.94-1`; those files were mirrored unchanged.
 
