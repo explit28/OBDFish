@@ -1,0 +1,53 @@
+name: Consolidate OBDFish 0.95.3-1 release notes
+
+on:
+  push:
+    branches:
+      - fix/obdfish-0953-connection
+    paths:
+      - .github/workflows/consolidate-09531.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Transfer changelog and retire superseded 0.95-3 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run watch 44412242741 --exit-status
+          test "$(gh run view 44412242741 --json conclusion --jq '.conclusion')" = success
+          test "$(gh release view 0.95.3-1 --json assets --jq '.assets | length')" -eq 3
+          gh release edit 0.95.3-1 --latest --notes "Community testing build for classic Bluetooth ELM327 adapters on Sailfish OS 5.1 / 5.2.
+
+          ## Changes from 0.95-2
+
+          - Correct a malformed yellow-status QML property expression.
+          - Guard Bluetooth device disconnects and missing device references.
+          - Reset initialization timers and pending command state on disconnect/errors.
+          - Ignore duplicate connection requests while a connection is pending.
+          - Reject overlapping serial profile sockets.
+          - Add connection diagnostics and safe socket read/write guards.
+          - Add Sailfish OS 5 contributor credits to the About page: deepbluev7, poetaster and ExPLIT.
+
+          ## RPM upgrade compatibility
+
+          Package version is now **0.95.3-1** (Version 0.95.3, Release 1), which is newer than **0.95.2-1**. This supersedes the misordered 0.95-3 RPMs. No functional changes beyond the previous 0.95-3 fixes and credits are implied by the version bump.
+
+          ## Test packages
+
+          Built with Sailfish OS 5.2.0.15 SDK: aarch64, armv7hl and i486.
+
+          **TEST VERSION:** Not yet validated in a vehicle or on Jolla C2 / Jolla 2. Sailfish OS 5.1 runtime compatibility remains unverified. The reported native crash is not confirmed fixed.
+
+          See README.md and TESTING.md in the repository for installation, safety and reporting instructions. Never test while driving. Do not erase trouble codes."
+          gh release delete 0.95-3 --yes --cleanup-tag
+          test "$(gh release view 0.95.3-1 --json isPrerelease --jq '.isPrerelease')" = false
+          gh release view 0.95.3-1 --json tagName,assets --jq '{tag: .tagName, assets: [.assets[].name]}'
