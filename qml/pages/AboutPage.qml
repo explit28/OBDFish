@@ -103,58 +103,66 @@ Page
             }
             Label
             {
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                text: "Copyright \u00A9 2018 Jens Drescher, Germany"
-            }
-            Label
-            {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.horizontalCenter: parent.horizontalCenter
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Contributions by:")
-            }
-            Label
-            {
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
-                wrapMode: Text.WordWrap
+                text: "Copyright © 2018 Jens Drescher, Germany"
+            }
+
+            SectionHeader { text: qsTr("Contributions by") }
+
+            Repeater
+            {
+                model: [
+                    { nick: "deepbluev7", name: "", role: "BluezQt port" },
+                    { nick: "poetaster", name: "Mark Washeim", role: "Packaging and Sailjail" },
+                    { nick: "ExPLIT", name: "Pawel Radomychelski", role: "Sailfish OS 5 fixes" },
+                    { nick: "kan-ibal", name: "", role: "Socket lifecycle research" },
+                    { nick: "kimmoli", name: "Kimmo Lindholm", role: "Messagebox" },
+                    { nick: "cfr34k", name: "Thomas Kolb", role: "Plotwidget" },
+                    { nick: "lainwir3d", name: "Richard Rondu", role: "QtConnectivity backport" }
+                ]
+
+                delegate: Column
+                {
+                    width: id_Column_Main.width - 2 * Theme.horizontalPageMargin
+                    x: Theme.horizontalPageMargin
+                    spacing: Theme.paddingSmall / 2
+
+                    Label
+                    {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.primaryColor
+                        wrapMode: Text.WordWrap
+                        text: modelData.nick + (modelData.name ? " (" + modelData.name + ")" : "")
+                    }
+                    Label
+                    {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: Theme.secondaryColor
+                        wrapMode: Text.WordWrap
+                        text: modelData.role
+                    }
+                    Item { width: parent.width; height: Theme.paddingSmall }
+                }
+            }
+
+            Item { width: parent.width; height: Theme.paddingMedium }
+
+            Label
+            {
+                width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: "deepbluev7 (BluezQt port)\\n"
-                    + "poetaster / Mark Washeim (packaging)\\n"
-                    + "ExPLIT / Pawel Radomychelski (Sailfish OS 5 fixes)\\n"
-                    + "kan-ibal (socket lifecycle research)\\n"
-                    + "kimmoli / Kimmo Lindholm (Messagebox)\\n"
-                    + "cfr34k / Thomas Kolb (Plotwidget)\\n"
-                    + "lainwir3d / Richard Rondu (QtConnectivity backport)"
-            }
-            Label
-            {
-                anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
-                text: "Version: " + Qt.application.version
+                text: "Version: " + Qt.application.version + "  |  GPLv3"
             }
-            Label
-            {
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                text: qsTr("Date: ") + "20.10.2018";
-            }
-            Label
-            {
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                text: qsTr("License: GPLv3")
-            }            
             Item
             {
                 width: parent.width
@@ -171,7 +179,7 @@ Page
             {
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
-                property string urlstring: "https://github.com/jdrescher2006/OBDFish"
+                property string urlstring: "https://github.com/explit28/OBDFish"
                 text: "<a href=\"" + urlstring + "\">" +  urlstring + "<\a>"
                 onLinkActivated: Qt.openUrlExternally(link)
             }
@@ -191,7 +199,7 @@ Page
             {
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
-                property string urlstring: "https://github.com/jdrescher2006/OBDFish/issues"
+                property string urlstring: "https://github.com/explit28/OBDFish/issues"
                 text: "<a href=\"" + urlstring + "\">" +  urlstring + "<\a>"
                 onLinkActivated: Qt.openUrlExternally(link)
             }
