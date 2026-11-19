@@ -9,6 +9,14 @@
 #include <QDebug>
 #include <QTimer>
 
+namespace {
+// Keep a disconnected socket alive until its current signal callbacks finish.
+void deferSocketRelease(const QSharedPointer<QLocalSocket> &socket)
+{
+    if (socket) QTimer::singleShot(0, [socket]() {});
+}
+}
+
 SerialPortProfile::SerialPortProfile(QObject *parent)
     : BluezQt::Profile(parent)
 {
@@ -44,6 +52,10 @@ SerialPortProfile::newConnection(BluezQt::DevicePtr device,
         request.cancel();
         return;
     }
+    if (m_socket) {
+        deferSocketRelease(m_socket);
+        m_socket.clear();
+    }
     m_socket = createSocket(fd);
     if (!m_socket || !m_socket->isValid()) {
         qWarning() << "SPP connection refused: invalid socket";
@@ -70,6 +82,7 @@ SerialPortProfile::requestDisconnection(BluezQt::DevicePtr device,
     qDebug() << "Disconnect" << device->name();
 
     const bool hadSocket = !m_socket.isNull();
+    deferSocketRelease(m_socket);
     m_socket.clear();
 
     request.accept();
@@ -85,13 +98,14 @@ SerialPortProfile::release()
 
 void SerialPortProfile::socketReadyRead()
 {
-    if (!m_socket) return;
+    const QSharedPointer<QLocalSocket> socket = m_socket;
+    if (!socket || sender() != socket.data()) return;
     qDebug("Entering readData...");
 
-    QByteArray data = m_socket->readAll();
+    QByteArray data = socket->readAll();
 
     qDebug() << "Data size:" << data.size()
-     << "\nData[" << m_socket->socketDescriptor() << "]:" << data.toHex()
+     << "\nData[" << socket->socketDescriptor() << "]:" << data.toHex()
 
      << "\nText: " << data;
 
@@ -100,20 +114,21 @@ void SerialPortProfile::socketReadyRead()
 
 void SerialPortProfile::socketDisconnected()
 {
-    if (!m_socket) return;
+    const QSharedPointer<QLocalSocket> socket = m_socket;
+    if (!socket || sender() != socket.data()) return;
     qInfo() << "SPP serial socket disconnected";
+    deferSocketRelease(socket);
     m_socket.clear();
     emit disconnected();
 }
 
 void SerialPortProfile::errorSocket(QLocalSocket::LocalSocketError errorCode)
 {
-    if (this->m_socket) {
-        qDebug() << "Error: " << this->m_socket->errorString();
-        qDebug() << "Errorcode: " << errorCode;
-
-        emit this->error(this->m_socket->errorString());
-    }
+    const QSharedPointer<QLocalSocket> socket = m_socket;
+    if (!socket || sender() != socket.data()) return;
+    qDebug() << "Error: " << socket->errorString();
+    qDebug() << "Errorcode: " << errorCode;
+    emit error(socket->errorString());
 }
 
 void SerialPortProfile::sendHex(QString sString)
