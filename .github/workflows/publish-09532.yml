@@ -1,0 +1,55 @@
+name: Publish OBDFish 0.95.3-2 community test
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/publish-09532.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Verify master build and create test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_id=44547574103
+          commit=a3c513d2a26945b796904cfb3271c0d2741640a7
+          tag=0.95.3-2
+          gh run watch "$run_id" --exit-status
+          test "$(gh run view "$run_id" --json conclusion --jq '.conclusion')" = success
+          test "$(gh run view "$run_id" --json headSha --jq '.headSha')" = "$commit"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; not overwriting."
+            exit 1
+          fi
+          gh run download "$run_id" --dir downloaded
+          mapfile -d '' -t rpms < <(find downloaded -type f -name 'harbour-obdfish-0.95.3-2.*.rpm' -print0)
+          test "${#rpms[@]}" -eq 3
+          for arch in aarch64 armv7hl i486; do
+            printf '%s\n' "${rpms[@]}" | grep -q "\\.$arch\\.rpm$"
+          done
+          gh release create "$tag" "${rpms[@]}" \
+            --target "$commit" \
+            --title "OBDFish 0.95.3-2 — TEST VERSION (Sailfish OS 5.2)" \
+            --prerelease \
+            --notes "Community test build based on 0.95.3-1.
+
+          Changes:
+          - Defer releasing disconnected BluezQt SPP sockets until active Qt signal callbacks have finished.
+          - Ignore delayed signals originating from old sockets.
+          - Keep an extra socket reference during data and error callbacks.
+          - Expand About-page contributor credits: deepbluev7, poetaster, ExPLIT, kan-ibal, Kimmo Lindholm, Thomas Kolb and Richard Rondu.
+          - Incorporate the socket-lifecycle approach suggested by kan-ibal/OBDFish64; the older QtBluetooth code was not copied into the BluezQt port.
+
+          Built from master using Sailfish OS 5.2.0.15 SDK for aarch64, armv7hl and i486.
+
+          **TEST VERSION:** Not yet tested with a vehicle. The reported native crash is not confirmed resolved. Test repeated Bluetooth connect/disconnect cycles; see TESTING.md. Do not test while driving or erase trouble codes."
