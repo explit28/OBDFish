@@ -1,0 +1,24 @@
+name: Mark OBDFish 0.95.3-2 latest
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/mark-09532-latest.yml
+
+permissions:
+  contents: write
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote test-labelled release to Latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release view 0.95.3-2 --json assets --jq '.assets | length' | grep -qx 3
+          gh release edit 0.95.3-2 --prerelease=false --latest
+          gh release view 0.95.3-2 --json tagName,isPrerelease
