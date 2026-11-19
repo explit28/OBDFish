@@ -19,24 +19,27 @@ The current code uses **BluezQt / BlueZ** to discover Bluetooth devices and regi
 
 A successful RPM build **does not establish** that Bluetooth discovery, SPP negotiation, OBD commands, or vehicle compatibility works on a particular device. See [TESTING.md](TESTING.md) for the community test procedure.
 
-## Community test release (0.95.3-1)
+## Community test release (0.95.3-2)
 
-**[Download OBDFish 0.95.3-1 test RPMs](https://github.com/explit28/OBDFish/releases/tag/0.95.3-1)**
+**[Download OBDFish 0.95.3-2 test RPMs](https://github.com/explit28/OBDFish/releases/tag/0.95.3-2)**
 
-This is a **community test release**, not a production-stable or vehicle-verified version. The RPM version was raised to **0.95.3-1** so the package manager recognizes it as newer than `0.95.2-1`. RPMs are built against the Sailfish OS 5.2.0.15 SDK for **aarch64, armv7hl and i486**. Sailfish OS 5.1 builds and runtime behavior still require testing.
+This is a **community test release**, not a production-stable or vehicle-verified version. The RPM version is **0.95.3-2** so the package manager recognizes it as newer than `0.95.2-1`. RPMs are built against the Sailfish OS 5.2.0.15 SDK for **aarch64, armv7hl and i486**. Sailfish OS 5.1 builds and runtime behavior still require testing.
 
-### Changes in 0.95.3-1
+### Changes in 0.95.3-2
 
 - Correct the yellow initialization indicator's invalid QML property expression (reported as `MainPage.qml:414 TypeError`).
 - Guard device disconnects and saved-adapter lookups against a missing Bluetooth device reference (reported as `disconnectFromDevice of null`).
 - Stop initialization timers and reset command state when the Bluetooth connection disappears.
 - Ignore duplicate device-connect taps while a connection is pending.
 - Reject an overlapping serial profile socket and guard reads/writes when the socket is unavailable.
-- Add focused connection diagnostics. These changes **do not prove that the reported native crash is fixed**; further on-device and vehicle tests are required.
+- Add focused connection diagnostics.
+- Defer releasing the SPP socket until the current Qt signal callbacks have finished; ignore stale socket events. Inspired by [kan-ibal's 64-bit lifecycle investigation](https://github.com/kan-ibal/OBDFish64/tree/64bit_fixes). This is a BluezQt-specific implementation, not a direct copy of the old QtBluetooth transport. These changes **do not prove that the reported native crash is fixed**; further on-device and vehicle tests are required.
 
 The fixes are based in part on reports by Sailfish community members in the [OBDFish forum discussion](https://forum.sailfishos.org/t/about-the-obdfish-app/11335?page=2).
 
 ### Earlier community test builds
+
+[OBDFish 0.95.3-1](https://github.com/explit28/OBDFish/releases/tag/0.95.3-1) is the earlier build without deferred SPP socket release.
 
 The previous `0.95-3` packages were withdrawn because their RPM version sorts below `0.95.2-1`. **Use 0.95.3-1 for upgrades.**
 
@@ -89,6 +92,7 @@ We particularly welcome reports from Sailfish OS 5.1 / 5.2 users with a vehicle 
 - deepbluev7 — BluezQt port and dynamic-page work
 - Mark Washeim (poetaster) — packaging, Sailjail and release maintenance
 - Pawel Radomychelski (ExPLIT) — Sailfish OS 5 compatibility fixes, testing builds and documentation
+- kan-ibal — 64-bit socket lifecycle investigation and crash-fix approach
 - Kimmo Lindholm — Messagebox component
 - Thomas Kolb — Plotwidget component
 - Richard Rondu — historical QtConnectivity backport
