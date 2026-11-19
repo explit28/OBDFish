@@ -179,8 +179,13 @@ Page
             {
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WrapAnywhere
+                textFormat: Text.RichText
                 property string urlstring: "https://github.com/explit28/OBDFish"
-                text: "<a href=\"" + urlstring + "\">" +  urlstring + "<\a>"
+                text: "<a href=\"" + urlstring + "\">" +  urlstring + "</a>"
                 onLinkActivated: Qt.openUrlExternally(link)
             }
             Item
@@ -199,8 +204,13 @@ Page
             {
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WrapAnywhere
+                textFormat: Text.RichText
                 property string urlstring: "https://github.com/explit28/OBDFish/issues"
-                text: "<a href=\"" + urlstring + "\">" +  urlstring + "<\a>"
+                text: "<a href=\"" + urlstring + "\">" +  urlstring + "</a>"
                 onLinkActivated: Qt.openUrlExternally(link)
             }
         }
