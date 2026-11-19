@@ -130,9 +130,9 @@ Page
                     + "poetaster / Mark Washeim (packaging)\\n"
                     + "ExPLIT / Pawel Radomychelski (Sailfish OS 5 fixes)\\n"
                     + "kan-ibal (socket lifecycle research)\\n"
-                    + "Kimmo Lindholm (Messagebox)\\n"
-                    + "Thomas Kolb (Plotwidget)\\n"
-                    + "Richard Rondu (QtConnectivity backport)"
+                    + "kimmoli / Kimmo Lindholm (Messagebox)\\n"
+                    + "cfr34k / Thomas Kolb (Plotwidget)\\n"
+                    + "lainwir3d / Richard Rondu (QtConnectivity backport)"
             }
             Label
             {
