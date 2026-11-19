@@ -116,7 +116,23 @@ Page
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
-                text: "SailfishOS 5 Modifications and corrections by deepbluev7, poetaster, ExPLIT"
+                text: qsTr("Contributions by:")
+            }
+            Label
+            {
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+                horizontalAlignment: Text.AlignHCenter
+                text: "deepbluev7 (BluezQt port)\\n"
+                    + "poetaster / Mark Washeim (packaging)\\n"
+                    + "ExPLIT / Pawel Radomychelski (Sailfish OS 5 fixes)\\n"
+                    + "kan-ibal (socket lifecycle research)\\n"
+                    + "Kimmo Lindholm (Messagebox)\\n"
+                    + "Thomas Kolb (Plotwidget)\\n"
+                    + "Richard Rondu (QtConnectivity backport)"
             }
             Label
             {
