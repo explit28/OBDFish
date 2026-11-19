@@ -29,7 +29,7 @@ Page
     property bool bWaitForCommandSequenceEnd: false
     property int iInit: 0
     property int iWaitForCommand: 0   
-    property bool bBluetoothScanning: btManager.usableAdapter && btManager.usableAdapter.discovering
+    property bool bBluetoothScanning: Boolean(btManager.usableAdapter && btManager.usableAdapter.discovering)
     property QtObject currentDevice: null
     property QtObject connectionCall: null
 
@@ -85,8 +85,12 @@ Page
     {
         target: connectionCall
         onFinished: {
+            if (!connectionCall) return;
             if (connectionCall.error) {
                 bConnecting = false;
+                bWaitForCommandSequenceEnd = false;
+                bCommandRunning = false;
+                iInit = 0;
                 currentDevice = null;
                 fncShowMessage(3, qsTr("Error while connecting: ") + connectionCall.errorText, 8000);
             }
@@ -99,6 +103,7 @@ Page
         onConnected:         //This is called from C++ if a connection was established
         {
             bConnecting = false;
+            console.log("OBDFish: Bluetooth serial profile connected");
 
             //Now start with initialize process
             iInit = 1;
@@ -114,6 +119,9 @@ Page
             fncViewMessage("info", qsTr("Disconnected from adapter"));
             currentDevice = null;
             bConnecting = false;
+            bWaitForCommandSequenceEnd = false;
+            bCommandRunning = false;
+            iInit = 0;
 
             sCoverValue1 = "";
             sCoverValue2 = "";
@@ -124,6 +132,9 @@ Page
             fncShowMessage(3, qsTr("Error while connecting: ") + sError, 8000);
             currentDevice = null;
             bConnecting = false;
+            bWaitForCommandSequenceEnd = false;
+            bCommandRunning = false;
+            iInit = 0;
         }
     }
 
@@ -156,7 +167,7 @@ Page
                         //This is not ELM327!!!
                         //Skip now and disconect from bluetooth device
                         fncShowMessage(3, qsTr("Error: unknown adapter. This is no ELM327 device!"), 8000);
-                        currentDevice.disconnectFromDevice();
+                        if (currentDevice) currentDevice.disconnectFromDevice();
                         bWaitForCommandSequenceEnd = false;
                         iInit = 0;
                     }
@@ -279,7 +290,7 @@ Page
                         if (bSaveDataToDebugFile) id_FileWriter.vWriteData("Supported PID's 0100: " + OBDDataObject.sSupportedPIDs0100 + "\r\nSupported PID's 0900: " + OBDDataObject.sSupportedPIDs0900 + "\r\n");
 
                         //Save adapter as used adapter. Only do this if the adapter is not in the list of used devies.
-                        if (currentDevice.address !== "" && SharedResources.fncAddUsedDevice(currentDevice.friendlyName, currentDevice.address))
+                        if (currentDevice && currentDevice.address !== "" && SharedResources.fncAddUsedDevice(currentDevice.friendlyName, currentDevice.address))
                         {
                             var sGetUsedAdaptersNames = id_ProjectSettings.sLoadProjectData("UsedAdaptersNames");
                             var sGetUsedAdaptersAddresses = id_ProjectSettings.sLoadProjectData("UsedAdaptersAddresses");
@@ -293,7 +304,7 @@ Page
                     else
                     {                       
                         fncShowMessage(0,qsTr("No supported PID's found!<br>- turn on ignition/engine<br>- reconnect to OBD adapter"), 20000);
-                        currentDevice.disconnectFromDevice();
+                        if (currentDevice) currentDevice.disconnectFromDevice();
                         bWaitForCommandSequenceEnd = false;
                         iInit = 0;
                     }
@@ -321,7 +332,7 @@ Page
                     //Skip now and disconect from bluetooth device                       
                     bWaitForCommandSequenceEnd = false;                        
                     fncViewMessage("error", "Communication timeout!!!");
-                    currentDevice.disconnectFromDevice();
+                    if (currentDevice) currentDevice.disconnectFromDevice();
                 }
                 else
                     iWaitForCommand++;
@@ -411,7 +422,7 @@ Page
                             repeat: true
                             running: (iInit > 0)
                             interval: 250
-                            onTriggered: id_GlassItem_Yellow.id_GlassItem_Red.dimmed = !id_GlassItem_Yellow.dimmed
+                            onTriggered: id_GlassItem_Yellow.dimmed = !id_GlassItem_Yellow.dimmed
                         }
                     }
                 }
@@ -452,10 +463,10 @@ Page
             {
                 width: parent.width
                 text: qsTr("Start Scanning...")
-                visible: !btManager.usableAdapter.discovering && !bConnecting && !(currentDevice && currentDevice.connected)
+                visible: !bBluetoothScanning && !bConnecting && !(currentDevice && currentDevice.connected)
                 onClicked:
                 {                    
-                    btManager.usableAdapter.startDiscovery()
+                    if (btManager.usableAdapter) btManager.usableAdapter.startDiscovery()
                 }
                 Image
                 {
@@ -467,10 +478,10 @@ Page
             {
                 width: parent.width
                 text: qsTr("Cancel")
-                visible: btManager.usableAdapter.discovering
+                visible: bBluetoothScanning
                 onClicked:
                 {
-                    btManager.usableAdapter.stopDiscovery()
+                    if (btManager.usableAdapter) btManager.usableAdapter.stopDiscovery()
                 }
                 Image
                 {
@@ -479,7 +490,7 @@ Page
                     smooth: true
                     NumberAnimation on rotation
                     {
-                      running: btManager.usableAdapter.discovering
+                      running: bBluetoothScanning
                       from: 0
                       to: 360
                       loops: Animation.Infinite
@@ -523,7 +534,7 @@ Page
                 visible: ((currentDevice && currentDevice.connected) && !bConnecting && iInit === 0)
                 onClicked:
                 {
-                    currentDevice.disconnectFromDevice();
+                    if (currentDevice) currentDevice.disconnectFromDevice();
                 }
                 Image
                 {
@@ -600,6 +611,11 @@ Page
                     }
                     onClicked:
                     {
+                        // Ignore repeated taps while BlueZ is still connecting.
+                        if (bConnecting || connectionCall || (currentDevice && currentDevice.connected)) {
+                            console.log("OBDFish: duplicate Bluetooth connect request ignored");
+                            return;
+                        }
                         //Connect here. Prepeare some things.
                         OBDDataObject.sSupportedPIDs0100 = "";
                         OBDDataObject.sSupportedPIDs0900 = "";
@@ -611,7 +627,13 @@ Page
                         //sCurrentBTAddress = SharedResources.fncGetDeviceBTAddress(index);
                         //sCurrentBTName = SharedResources.fncGetDeviceBTName(index);
                         currentDevice = modelData
+                        console.log("OBDFish: starting Bluetooth connection");
                         connectionCall = currentDevice.connectToDevice()
+                        if (!connectionCall) {
+                            console.warn("OBDFish: Bluetooth connection returned no pending call");
+                            bConnecting = false;
+                            currentDevice = null;
+                        }
                     }
                 }
                 VerticalScrollDecorator {}
