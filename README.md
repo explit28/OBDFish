@@ -93,9 +93,9 @@ We particularly welcome reports from Sailfish OS 5.1 / 5.2 users with a vehicle 
 - Mark Washeim (poetaster) — packaging, Sailjail and release maintenance
 - Pawel Radomychelski (ExPLIT) — Sailfish OS 5 compatibility fixes, testing builds and documentation
 - kan-ibal — 64-bit socket lifecycle investigation and crash-fix approach
-- Kimmo Lindholm — Messagebox component
-- Thomas Kolb — Plotwidget component
-- Richard Rondu — historical QtConnectivity backport
+- Kimmo Lindholm ([kimmoli](https://github.com/kimmoli)) — Messagebox component
+- Thomas Kolb ([cfr34k](https://github.com/cfr34k)) — Plotwidget component
+- Richard Rondu ([lainwir3d](https://github.com/lainwir3d)) — historical QtConnectivity backport
 
 See the repository history for individual contributions.
 
