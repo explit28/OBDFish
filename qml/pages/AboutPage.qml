@@ -180,7 +180,6 @@ Page
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WrapAnywhere
                 textFormat: Text.RichText
@@ -205,7 +204,6 @@ Page
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WrapAnywhere
                 textFormat: Text.RichText
