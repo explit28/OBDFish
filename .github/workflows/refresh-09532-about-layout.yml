@@ -1,0 +1,37 @@
+name: Refresh OBDFish 0.95.3-2 About layout
+
+on:
+  push:
+    branches: [master]
+    paths: [.github/workflows/refresh-09532-about-layout.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Replace existing RPMs with redesigned About page
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_id=44551775286
+          commit=0d8f7abdb5026b4c7e87574a70b9c67770e6b49b
+          tag=0.95.3-2
+          gh run watch "$run_id" --exit-status
+          test "$(gh run view "$run_id" --json conclusion --jq '.conclusion')" = success
+          test "$(gh run view "$run_id" --json headSha --jq '.headSha')" = "$commit"
+          gh run download "$run_id" --dir downloaded
+          mapfile -d '' -t rpms < <(find downloaded -type f -name 'harbour-obdfish-0.95.3-2.*.rpm' -print0)
+          test "${#rpms[@]}" -eq 3
+          for arch in aarch64 armv7hl i486; do
+            printf '%s\n' "${rpms[@]}" | grep -q "\\.$arch\\.rpm$"
+          done
+          gh release upload "$tag" "${rpms[@]}" --clobber
+          gh api --method PATCH "repos/${GH_REPO}/git/refs/tags/${tag}" -f sha="$commit" -F force=true
+          gh release view "$tag" --json tagName,assets --jq '{tag: .tagName, assets: [.assets[].name]}'
