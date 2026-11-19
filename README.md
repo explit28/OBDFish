@@ -88,14 +88,14 @@ We particularly welcome reports from Sailfish OS 5.1 / 5.2 users with a vehicle 
 
 ## Credits
 
-- Jens Drescher ([jdrescher2006](https://github.com/jdrescher2006)) — original OBDFish author
+- [jdrescher2006](https://github.com/jdrescher2006) (Jens Drescher) — original OBDFish author
 - [deepbluev7](https://github.com/deepbluev7) — BluezQt port and dynamic-page work
-- Mark Washeim ([poetaster](https://github.com/poetaster)) — packaging, Sailjail and release maintenance
-- Pawel Radomychelski ([ExPLIT](https://github.com/explit28)) — Sailfish OS 5 compatibility fixes, testing builds and documentation
+- [poetaster](https://github.com/poetaster) (Mark Washeim) — packaging, Sailjail and release maintenance
+- [ExPLIT](https://github.com/explit28) (Pawel Radomychelski) — Sailfish OS 5 compatibility fixes, testing builds and documentation
 - [kan-ibal](https://github.com/kan-ibal) — 64-bit socket lifecycle investigation and crash-fix approach
-- Kimmo Lindholm ([kimmoli](https://github.com/kimmoli)) — Messagebox component
-- Thomas Kolb ([cfr34k](https://github.com/cfr34k)) — Plotwidget component
-- Richard Rondu ([lainwir3d](https://github.com/lainwir3d)) — historical QtConnectivity backport
+- [kimmoli](https://github.com/kimmoli) (Kimmo Lindholm) — Messagebox component
+- [cfr34k](https://github.com/cfr34k) (Thomas Kolb) — Plotwidget component
+- [lainwir3d](https://github.com/lainwir3d) (Richard Rondu) — historical QtConnectivity backport
 
 See the repository history for individual contributions.
 
