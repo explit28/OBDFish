@@ -88,7 +88,7 @@ We particularly welcome reports from Sailfish OS 5.1 / 5.2 users with a vehicle 
 
 ## Credits
 
-- Jens Drescher — original OBDFish author
+- Jens Drescher ([jdrescher2006](https://github.com/jdrescher2006)) — original OBDFish author
 - deepbluev7 — BluezQt port and dynamic-page work
 - Mark Washeim (poetaster) — packaging, Sailjail and release maintenance
 - Pawel Radomychelski (ExPLIT) — Sailfish OS 5 compatibility fixes, testing builds and documentation
